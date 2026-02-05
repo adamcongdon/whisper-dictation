@@ -151,8 +151,18 @@ cat > "$HOME/.hammerspoon/init.lua" << HSCONFIG
 
 local isRecording = false
 local rightCmdDown = false
+local rightOptDown = false
 local installDir = "$INSTALL_DIR"
 
+-- Auto-reload on config change
+local function reloadConfig(files)
+    for _, file in pairs(files) do
+        if file:sub(-4) == ".lua" then hs.reload() end
+    end
+end
+hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
+
+-- Right Command push-to-talk
 local cmdWatcher = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, function(event)
     local keyCode = event:getKeyCode()
     local flags = event:getFlags()
@@ -176,10 +186,12 @@ local cmdWatcher = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, funct
     end
     return false
 end)
-cmdWatcher:start()
+
+if not cmdWatcher:start() then
+    hs.alert.show("⚠️ Failed to start - check Accessibility permissions", 5)
+end
 
 -- Right Option for clipboard mode
-local rightOptDown = false
 local optWatcher = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, function(event)
     local keyCode = event:getKeyCode()
     local flags = event:getFlags()
@@ -205,7 +217,15 @@ local optWatcher = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, funct
 end)
 optWatcher:start()
 
+-- Manual reload
 hs.hotkey.bind({"cmd", "ctrl"}, "r", function() hs.reload() end)
+
+-- Health check: Cmd+Ctrl+H
+hs.hotkey.bind({"cmd", "ctrl"}, "h", function()
+    local status = "Dictation Status:\\n• Key watcher: " .. (cmdWatcher:isEnabled() and "✓ Active" or "✗ Inactive")
+    hs.alert.show(status, 3)
+end)
+
 hs.alert.show("🎤 Hold Right ⌘ to dictate", 2)
 HSCONFIG
 

@@ -90,9 +90,15 @@ Or:
 
 ## Troubleshooting
 
+### Nothing happens when pressing Right Command
+1. **Reload config:** Press `Cmd+Ctrl+R`
+2. **Check status:** Press `Cmd+Ctrl+H` to see if key watcher is active
+3. **Check Accessibility permissions:** System Settings → Privacy & Security → Accessibility → Enable Hammerspoon
+4. **Restart Hammerspoon:** Quit from menubar and reopen
+
 ### Text not typing
 - Check Accessibility permissions for Hammerspoon
-- Reload config: Cmd+Ctrl+R
+- Reload config: `Cmd+Ctrl+R`
 
 ### No transcription
 - Check Microphone permissions for Hammerspoon
@@ -101,6 +107,7 @@ Or:
 
 ### Hammerspoon not responding
 - Quit and reopen Hammerspoon
+- Config auto-reloads when changed, but manual reload: `Cmd+Ctrl+R`
 - Check Console.app for errors
 
 ## Architecture
