@@ -143,89 +143,112 @@ chmod +x "$INSTALL_DIR/start-server.sh"
 
 echo -e "${GREEN}✓${NC} Scripts installed to $INSTALL_DIR"
 
-# Setup Hammerspoon config
+# Setup Hammerspoon config (ROBUST with debouncing)
 mkdir -p "$HOME/.hammerspoon"
 cat > "$HOME/.hammerspoon/init.lua" << HSCONFIG
 -- Whisper Dictation: Hold Right Command to dictate
--- Right Cmd = 54, Left Cmd = 55, Right Opt = 61
+-- ROBUST: Debouncing, state verification, auto-cleanup
 
 local isRecording = false
 local rightCmdDown = false
 local rightOptDown = false
+local lastActionTime = 0
+local DEBOUNCE_MS = 500
 local installDir = "$INSTALL_DIR"
 
--- Auto-reload on config change
+local function isActuallyRecording()
+    local _, status = hs.execute("pgrep rec")
+    return status
+end
+
+local function shouldDebounce()
+    local now = hs.timer.secondsSinceEpoch() * 1000
+    if (now - lastActionTime) < DEBOUNCE_MS then return true end
+    lastActionTime = now
+    return false
+end
+
+local function forceCleanup()
+    os.execute("pkill -9 rec 2>/dev/null; rm -f /tmp/dictation-ptt.* 2>/dev/null")
+    isRecording = false
+    rightCmdDown = false
+    rightOptDown = false
+end
+
 local function reloadConfig(files)
     for _, file in pairs(files) do
-        if file:sub(-4) == ".lua" then hs.reload() end
+        if file:sub(-4) == ".lua" then forceCleanup(); hs.reload() end
     end
 end
 hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 
--- Right Command push-to-talk
+local function startRecording(mode)
+    if shouldDebounce() then return end
+    if isRecording then return end
+    if isActuallyRecording() then forceCleanup(); return end
+    isRecording = true
+    hs.alert.show("🎤", 0.3)
+    os.execute(installDir .. "/record-start.sh &")
+end
+
+local function stopRecording(mode)
+    if shouldDebounce() then return end
+    if not isRecording then
+        if isActuallyRecording() then forceCleanup() end
+        return
+    end
+    isRecording = false
+    hs.alert.show("⏳", 0.3)
+    local arg = mode == "clipboard" and "--clipboard" or "--type"
+    os.execute(installDir .. "/record-stop.sh " .. arg .. " &")
+end
+
 local cmdWatcher = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, function(event)
     local keyCode = event:getKeyCode()
     local flags = event:getFlags()
-
-    if keyCode == 54 then  -- Right Command
+    if keyCode == 54 then
         if flags.cmd and not rightCmdDown then
             rightCmdDown = true
-            if not isRecording then
-                isRecording = true
-                hs.alert.show("🎤", 0.3)
-                os.execute(installDir .. "/record-start.sh &")
-            end
+            startRecording("type")
         elseif not flags.cmd and rightCmdDown then
             rightCmdDown = false
-            if isRecording then
-                isRecording = false
-                hs.alert.show("⏳", 0.3)
-                os.execute(installDir .. "/record-stop.sh --type &")
-            end
+            stopRecording("type")
         end
     end
     return false
 end)
-
 if not cmdWatcher:start() then
-    hs.alert.show("⚠️ Failed to start - check Accessibility permissions", 5)
+    hs.alert.show("⚠️ Failed - check Accessibility permissions", 5)
 end
 
--- Right Option for clipboard mode
 local optWatcher = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, function(event)
     local keyCode = event:getKeyCode()
     local flags = event:getFlags()
-
-    if keyCode == 61 then  -- Right Option
+    if keyCode == 61 then
         if flags.alt and not rightOptDown then
             rightOptDown = true
-            if not isRecording then
-                isRecording = true
-                hs.alert.show("🎤📋", 0.3)
-                os.execute(installDir .. "/record-start.sh &")
-            end
+            startRecording("clipboard")
         elseif not flags.alt and rightOptDown then
             rightOptDown = false
-            if isRecording then
-                isRecording = false
-                hs.alert.show("⏳", 0.3)
-                os.execute(installDir .. "/record-stop.sh --clipboard &")
-            end
+            stopRecording("clipboard")
         end
     end
     return false
 end)
 optWatcher:start()
 
--- Manual reload
-hs.hotkey.bind({"cmd", "ctrl"}, "r", function() hs.reload() end)
-
--- Health check: Cmd+Ctrl+H
+hs.hotkey.bind({"cmd", "ctrl"}, "r", function() forceCleanup(); hs.reload() end)
 hs.hotkey.bind({"cmd", "ctrl"}, "h", function()
-    local status = "Dictation Status:\\n• Key watcher: " .. (cmdWatcher:isEnabled() and "✓ Active" or "✗ Inactive")
-    hs.alert.show(status, 3)
+    local s = "State: " .. (isRecording and "Recording" or "Idle") .. "\\n"
+    s = s .. "Process: " .. (isActuallyRecording() and "⚠️ Running" or "✓ None")
+    hs.alert.show(s, 3)
+end)
+hs.hotkey.bind({"cmd", "ctrl"}, "escape", function()
+    forceCleanup()
+    hs.alert.show("🔄 Reset", 1)
 end)
 
+forceCleanup()
 hs.alert.show("🎤 Hold Right ⌘ to dictate", 2)
 HSCONFIG
 
