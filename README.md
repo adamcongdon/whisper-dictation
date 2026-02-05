@@ -7,12 +7,12 @@ Uses whisper.cpp for speech recognition. No cloud, no subscription, runs entirel
 ## Quick Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/whisper-dictation/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/adamcongdon/whisper-dictation/main/install.sh | bash
 ```
 
 Or clone and run:
 ```bash
-git clone https://github.com/YOUR_USERNAME/whisper-dictation.git
+git clone https://github.com/adamcongdon/whisper-dictation.git
 cd whisper-dictation
 ./install.sh
 ```
@@ -80,7 +80,7 @@ pkill -f whisper-server
 ## Uninstall
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/whisper-dictation/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/adamcongdon/whisper-dictation/main/uninstall.sh | bash
 ```
 
 Or:
