@@ -1,0 +1,14 @@
+{
+  "name": "voice-program",
+  "version": "1.0.0",
+  "description": "Custom dictation system using whisper.cpp",
+  "type": "module",
+  "scripts": {
+    "server:start": "./scripts/start-server.sh",
+    "server:stop": "./scripts/stop-server.sh",
+    "dictate": "./scripts/dictate.sh",
+    "dictate:clipboard": "./scripts/dictate.sh --clipboard"
+  },
+  "author": "Adam",
+  "license": "MIT"
+}

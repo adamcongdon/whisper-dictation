@@ -23,7 +23,7 @@ fi
 touch "$LOCK_FILE"
 
 # FORCE KILL all existing rec processes (not just by PID)
-pkill -9 rec 2>/dev/null
+pkill -9 -x rec 2>/dev/null
 sleep 0.1
 
 # Clean up old files

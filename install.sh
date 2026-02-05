@@ -157,7 +157,7 @@ local DEBOUNCE_MS = 500
 local installDir = "$INSTALL_DIR"
 
 local function isActuallyRecording()
-    local _, status = hs.execute("pgrep rec")
+    local _, status = hs.execute("pgrep -x rec")
     return status
 end
 
@@ -169,7 +169,7 @@ local function shouldDebounce()
 end
 
 local function forceCleanup()
-    os.execute("pkill -9 rec 2>/dev/null; rm -f /tmp/dictation-ptt.* 2>/dev/null")
+    os.execute("pkill -9 -x rec 2>/dev/null; rm -f /tmp/dictation-ptt.* 2>/dev/null")
     isRecording = false
     rightCmdDown = false
     rightOptDown = false

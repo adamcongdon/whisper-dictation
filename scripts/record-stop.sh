@@ -15,7 +15,7 @@ MODE="${1:---type}"
 rm -f "$LOCK_FILE"
 
 # Stop ALL rec processes (robust)
-pkill rec 2>/dev/null
+pkill -x rec 2>/dev/null
 sleep 0.2
 
 # Clean up PID file
