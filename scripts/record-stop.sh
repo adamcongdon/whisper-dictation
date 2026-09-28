@@ -7,7 +7,7 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 TEMP_FILE="/tmp/dictation-ptt.wav"
 PID_FILE="/tmp/dictation-ptt.pid"
 LOCK_FILE="/tmp/dictation-ptt.lock"
-MODEL="${WHISPER_MODEL:-$HOME/.whisper/ggml-base.en.bin}"
+MODEL="${WHISPER_MODEL:-$HOME/.whisper/ggml-large-v3-turbo.bin}"
 WHISPER_PORT="${WHISPER_PORT:-8889}"
 MODE="${1:---type}"
 
@@ -82,7 +82,7 @@ case "$MODE" in
     --type|*)
         # Escape special characters for AppleScript
         ESCAPED=$(echo "$TEXT" | sed 's/\\/\\\\/g; s/"/\\"/g')
-        osascript -e "tell application \"System Events\" to keystroke \"$ESCAPED\""
+        osascript -e "tell application \"System Events\" to keystroke \"$ESCAPED \""
         echo "Typed: $TEXT"
         ;;
 esac

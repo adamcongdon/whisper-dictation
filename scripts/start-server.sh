@@ -1,7 +1,7 @@
 #!/bin/bash
 # Start the whisper.cpp transcription server
 
-MODEL="${WHISPER_MODEL:-$HOME/.whisper/ggml-base.en.bin}"
+MODEL="${WHISPER_MODEL:-$HOME/.whisper/ggml-large-v3-turbo.bin}"
 PORT="${WHISPER_PORT:-8889}"
 HOST="${WHISPER_HOST:-0.0.0.0}"
 
